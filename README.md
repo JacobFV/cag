@@ -24,3 +24,12 @@ I feel like there should be some upper bound on the amount of noise that can be 
 
 - make synthetic environments
 - make a unified graph representation space
+
+---
+
+THE conrete rendition of the abstract representiaton does not need to be differentiable
+
+alternatively it COULD be differentiable just to provide some gradients:
+- differentiable render engine
+- non-differentiable graph restructuring into a euclidean lattice but differentiable values
+Although the poolibng operation requires making some non-differentiable selection of nodes for inclusion/exclusion. this might bnot be as problemnatic if we constrain the graph size along the way
