@@ -1,46 +1,26 @@
-# CAG: Abstract Computational Generalization
+# CAG: Computational Abstraction & Generalization
 
-CAG helps shift focus from memorization to compositional generalization. 
+1. At CAG devtime, the CAG developer designs a simple, general-purpose graph world system
+2. At world gentime, the world creator samples a ruleset and one or more initial states
+3. ABSTRACT SYNTHETIC DATA GENERATION: the CAG system runs the world ruleset on the initial state to generate abstract input-output pairs
+4. OFF-POLICY ABSTRACT SYNTHETIC DATA COLLECTION: the CAG system samples a fixed policy on the world ruleset on the initial state to generate abstract input-output pairs
+5. ON-POLICY ABSTRACT SYNTHETIC DATA COLLECTION: the CAG system samples a learning policy on the world ruleset on the initial state to generate abstract input-output pairs
 
+Train the AI on varying degrees of representational abstraction:
 
-Prolog or Bend2 for the rules
+- graphs (direct abstract representations)
+- text (mostly a graph, but flattened)
+- grids (low abstraction)
+- 3d worlds (extremely distant representational-to-abstraction correspondance)
 
-train an AI to learn these rules when the system is expressed in unstructured modalities
+Additional features:
 
+- various corruptions, increasing at lower degrees of abstraction
+- dropout, drop-on(?)
 
-        the dataset is all possible system rulesets!
-        x -> true system rules -> y
-        x -> ai -> y prediction
-
-
-for all rules
-
----
-
-i don't have time to work on this but we need to learn to learn and i think compositional abstraction and generalization is the lowest hanging fruit on this agenda. i think this is going to become even more important with agentic vlms that need to preserve this structure as a first class citizen in their latent representations as opposed to embeddings which 'flatten' the inherent structure. Not that the structure can't be recovered with probes or network decomposition, but latent dynamics are much more efifcient instilled as architectural priors than learned through gradient descent
-
-1. sample from rulesets r \in R,
-1.1. sample from initial states x \in X(r),
-1.1.1. determine the result state y = r(x)
-1.1.2. render the unstructured states x', y' = f_render(x), f_render(y)
-1.1.3. let the AI learn from x', y'
-
-min num_examples max accuracy
-
-but actually separate out the collection and training phases
-
-this is kinda like inverse rendering, meta learning, and program synthesis.
-
-you can see how this would be modified to build environments
-
-partly based on @fchollet's talk
-
-this paper seems helpful:
+I feel like there should be some upper bound on the amount of noise that can be tolerated for a given level of representational abstraction/density. eg, grids can tolerate much more noise within a higher error margin because of the redundancy and the ruleset.
 
 ---
 
-x: state
-
-individually(x, fn): applies fn to each elem in x individually
-
-conditionally(cond, true_val, false_val)
+- make synthetic environments
+- make a unified graph representation space
