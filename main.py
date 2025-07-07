@@ -1,31 +1,59 @@
-type PROGRAM = str
-type STATE = str
+# architecture
+# ai_instance
+# env_generator
+# env
+# (env, initial_state)
+# abstract
+# concrete
+# THIS SYSTEM IS USING GRAPHS!
 
-def run(ruleset: PROGRAM, initial_state: STATE):
-    # Create a local namespace to execute the ruleset code
-    local_namespace = {}
-    exec(ruleset, globals(), local_namespace)
-    
-    # Extract the main function from the executed code
-    step_fn = local_namespace['main']
-    gen_initial_state_fn = local_namespace['gen_initial_state']
-    done_fn = local_namespace['done']
-    
-    for initial_state in gen_initial_state_fn():
-        world_state = initial_state
-        while not done_fn(world_state):
-            world_state = step_fn(world_state)
-            yield world_state, False
-        yield world_state, True
+from typing import Callable
 
-def gather_data(rulesets_and_initial_states: list[tuple[PROGRAM, list[STATE]]]):
-    for ruleset, initial_states in rulesets_and_initial_states:
-        for initial_state in initial_states:
-            world = run(ruleset, initial_state)
-            yield world
 
-def main():
-    rulesets_and_initial_states = [
-        (open("rulesets/0.py", 'r').read(), [{"positions": [[0, 0, 0]], "velocities": [[0, 0, 0]], "masses": [1], "stiffness": [[0]], "damping": [[0]], "rest_length": [[0]]}])
-    ]
-    gather_data(rulesets_and_initial_states)
+type State = dict
+type Action = dict
+type Rule = tuple[Trigger, Change]
+type Env = list[Rule]
+type Traj = list[tuple[State, Action, State]]
+
+
+class AbstractAgent:
+    def __init__(self):
+        pass
+
+class ConcreteAgent:
+    def __init__(self):
+        pass
+
+observe_only_policy = lambda *a, **kw: []
+
+config = {
+    'off_policy_episodes_per_env': 10,
+    'off_policy_steps_per_episode': 100,
+    'on_policy_episodes_per_env': 10,
+    'on_policy_steps_per_episode': 100,
+}
+
+def benchmark(
+        abstract_agent_factory: Callable[[], AbstractAgent], 
+        concrete_agent_factory: Callable[[], ConcreteAgent], 
+        env_generator: Callable[[], Env] = None):
+
+    # first, just collect a broad sampling of abstract data across all environments
+    for env in env_generator():
+        for episode in range(config['off_policy_episodes_per_env']):
+            off_policy_data = driver(env, agent=observe_only_policy, steps=config['off_policy_steps_per_episode'])
+
+    # next, run on-policy directly on abstract data
+    for env in env_generator():
+        agent = abstract_agent_factory()
+        data = driver(env, agent)
+        train(agent, data)
+        evaluate(agent, data)
+
+    # next, run on-policy on concrete data
+    concrete_synthetic_data_collection(
+        agent_factory=concrete_agent_factory, 
+        env_generator=env_generator, 
+        env_run_kwargs={'max_steps': 100}
+    )
