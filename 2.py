@@ -45,7 +45,7 @@ class ProgramGeneratorEnv(Env):
     def reset(self) -> Program:
         ...
 
-    def step(self) -> Program:
+    def step(self, action: PerformanceLearningPrevious) -> Program:
         ...
 
 
@@ -64,3 +64,33 @@ def eval(ai_factory):
 
 
 # in the future we will also make a generalization of this to have various rings of fixed and stationary characteristics
+
+
+'''
+every environment ring includes:
+- hidden state
+- observable state
+- action
+- forward dynamics
+
+program instance:
+- hidden state: general search latents, program graph, locals[, standard graph trajectory]
+- observable state: [standard graph trajectory, ]standard graph output
+- action: standard graph input
+- forward dynamics: run the program. the next state is determined by applying the program rules to the locals which include the standard graph input
+- initial input: ??? (i think there should not be an input or output since this is task-agnostic but i feel this should come from the agent at the ring above this agent)
+- final output: ??? (i think there should not be an input or output since this is task-agnostic but i feel this should come from the agent at the ring above this agent)
+
+program class:
+- hidden state: general search latents, program graph
+- observable state: standard graph trajectories
+- action: none?
+- forward dynamics: run a full program instance data collection episode with the new initial state for that episode determine by the action (but it may just be random sampling of all possible initial states)
+
+general search:
+- hidden state: general search latents
+- observable state: none?
+- action: none?
+- forward dynamics: sample a new program class (using an LLM + code graph parser). it could be conditioned to sample programs that promote the greatest possible learning (though this would be tied to the AI so it might corrupt the evaluation metric).
+
+'''
