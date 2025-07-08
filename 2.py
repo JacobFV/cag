@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Generator, Self
+from typing import Any, Dict, Generator, Self, TypedDict, Union
 import networkx as nx
 import numpy as np
 
@@ -17,45 +19,94 @@ Program Graph:
 - data nodes: other nodes
 '''
 
-# @dataclass
-# class BaseProgramNode:
-#     pass
-# class BaseStatementProgramNode(BaseProgramNode):
-#     pass
-# class ReturnStatementProgramNode(BaseStatementProgramNode):
-#     pass
-# class AssignmentStatementProgramNode(BaseStatementProgramNode):
-#     pass
-# class IfStatementProgramNode(BaseStatementProgramNode):
-#     pass
-# class PrintStatementProgramNode(BaseStatementProgramNode):
-#     pass
-# class ReadStatementProgramNode(BaseStatementProgramNode):
-#     pass
-# class DeclarationProgramNode(BaseStatementProgramNode):
-#     pass
-# class FunctionCallProgramNode(BaseStatementProgramNode):
-#     pass
-# class BaseDataNode(BaseProgramNode):
-#     pass
-# class AtomicDataNode(BaseDataNode):
-#     pass
-# class ListDataNode(BaseDataNode):
-#     pass
-# class DictDataNode(BaseDataNode):
-#     pass
+# Connectivity classes (renamed from *Node)
+class BaseProgramConnectivity(TypedDict):
+    pass
+class BaseStatementProgramConnectivity(BaseProgramConnectivity):
+    pass
+class ReturnStatementProgramConnectivity(BaseStatementProgramConnectivity):
+    retval: 'ExpressionConnectivity'
+class AssignmentStatementProgramConnectivity(BaseStatementProgramConnectivity):
+    lhs: SymbolConnectivity
+    rhs: ExpressionConnectivity
+class ConditionalExecutionProgramConnectivity(BaseStatementProgramConnectivity):
+    condition: ExpressionConnectivity
+    true_branch_entrypoint: 'BaseStatementProgramConnectivity'
+    false_branch_entrypoint: 'BaseStatementProgramConnectivity'
+class DeclarationProgramConnectivity(BaseStatementProgramConnectivity):
+    pass
+class FunctionCallProgramConnectivity(BaseStatementProgramConnectivity):
+    fn_symbol: SymbolConnectivity
+    args: Dict[str, ExpressionConnectivity]
+class SymbolConnectivity(BaseProgramConnectivity):
+    class Config:
+        name: str
+        constraints: list[str] # in the future, we will have a value constraint system, starting with type constraints
+class StdInConnectivity(SymbolConnectivity):
+    class Config:
+        name: 'stdin'
+class StdOutConnectivity(SymbolConnectivity):
+    class Config:
+        name: 'stdout'
+class StdErrConnectivity(SymbolConnectivity):
+    class Config:
+        name: 'stderr'
+class ExitCodeConnectivity(SymbolConnectivity):
+    class Config:
+        name: 'exit_code'
+class FunctionDefinitionConnectivity(BaseProgramConnectivity):
+    entrypoint: 'BaseStatementProgramConnectivity'
+    parameters: Dict[str, SymbolConnectivity]
+class AtomicDataConnectivity(BaseProgramConnectivity):
+    class Config:
+        value: Any
+class ListDataConnectivity(BaseProgramConnectivity):
+    children: list[ExpressionConnectivity]
+class DictDataConnectivity(BaseProgramConnectivity):
+    children: dict[str, ExpressionConnectivity]
+ExpressionConnectivity = Union[FunctionDefinitionConnectivity, AtomicDataConnectivity, ListDataConnectivity, DictDataConnectivity, FunctionCallProgramConnectivity]
+class ProcessorConnectivity(BaseProgramConnectivity):
+    current_control_pointer: 'BaseStatementProgramConnectivity'
 
-class ProgramNodeType(Enum, str):
-    RETURN_STATEMENT = 'return_statement'
-    ASSIGNMENT_STATEMENT = 'assignment_statement'
-    IF_STATEMENT = 'if_statement'
-    PRINT_STATEMENT = 'print_statement'
-    READ_STATEMENT = 'read_statement'
-    DECLARATION_STATEMENT = 'declaration_statement'
-    FUNCTION_CALL_STATEMENT = 'function_call_statement'
-    ATOMIC_DATA = 'atomic_data'
-    LIST_DATA = 'list_data'
-    DICT_DATA = 'dict_data'
+# Node classes (mostly empty, with name and constraints on specific ones)
+class BaseProgramNode:
+    pass
+class BaseStatementProgramNode(BaseProgramNode):
+    pass
+class ReturnStatementProgramNode(BaseStatementProgramNode):
+    pass
+class AssignmentStatementProgramNode(BaseStatementProgramNode):
+    pass
+class ConditionalExecutionProgramNode(BaseStatementProgramNode):
+    pass
+class DeclarationProgramNode(BaseStatementProgramNode):
+    pass
+class FunctionCallProgramNode(BaseStatementProgramNode):
+    pass
+class SymbolNode(BaseProgramNode):
+    class Config:
+        name: str
+        constraints: list[str] # in the future, we will have a value constraint system, starting with type constraints
+class StdInNode(SymbolNode):
+    pass
+class StdOutNode(SymbolNode):
+    pass
+class StdErrNode(SymbolNode):
+    pass
+class ExitCodeNode(SymbolNode):
+    pass
+class FunctionDefinitionNode(BaseProgramNode):
+    pass
+class AtomicDataNode(BaseProgramNode):
+    class Config:
+        value: Any
+class ListDataNode(BaseProgramNode):
+    pass
+class DictDataNode(BaseProgramNode):
+    pass
+ExpressionNode = Union[FunctionDefinitionNode, AtomicDataNode, ListDataNode, DictDataNode, FunctionCallProgramNode]
+class ProcessorNode(BaseProgramNode):
+    pass
 
 @dataclass
 class Program:
@@ -93,6 +144,14 @@ class Program:
 # penalized by bits of program interaction (experience), and direct program observation (priors)
 
 # intelligence = 1 / (E[error] x experience x priors)
+
+class Env:
+    """Base environment class"""
+    pass
+
+class PerformanceLearningPrevious:
+    """Type for performance learning previous actions"""
+    pass
 
 class SingleProgramInstanceEnv(Env):
     program_instance: Program
