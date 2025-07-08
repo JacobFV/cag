@@ -33,3 +33,10 @@ alternatively it COULD be differentiable just to provide some gradients:
 - differentiable render engine
 - non-differentiable graph restructuring into a euclidean lattice but differentiable values
 Although the poolibng operation requires making some non-differentiable selection of nodes for inclusion/exclusion. this might bnot be as problemnatic if we constrain the graph size along the way
+
+---
+
+ALso,
+
+node rewrite operations are not sufficient!
+We need to have graph convolution filters. and one of the values they output makes an edge split. another one of the values they output makes a node die
